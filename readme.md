@@ -14,10 +14,11 @@ Supported Laravel versions: 5.5, 5.6, 5.7, 5.8, 6+
 composer require mantas-done/laravel-apm
 ```
 
-Add route to your routes/web.php file (don't forget securing it from unwanted visitors)
+Route :
 
 ```php
-Route::get('/apm', '\Done\LaravelAPM\ApmController@index')->name('apm');
+Default uri = /apm
+default name = apm
 ```
 
 Daily clear log files by adding scheduled job to App/Console/Kernel.php
@@ -30,6 +31,11 @@ Enable APM in .env file
 
 ```
 APM=1
+```
+
+Publish config
+```
+php artisan vendor:publish --provider="Done\LaravelAPM\ApmServiceProvider" --tag=config  
 ```
 
 ## Why?

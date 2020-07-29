@@ -5,6 +5,10 @@ return [
     'excluded' => [
         'apm'
     ],
+    'route' => [
+        'uri' => '/apm',
+        'name' => 'apm'
+    ],
     'middlewares' => [
         'web'
     ]
