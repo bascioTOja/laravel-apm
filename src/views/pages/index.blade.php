@@ -49,14 +49,29 @@
                 if (count($block_data) > 50) {
                     break;
                 }
-                if($group != 'sql-count'){
-                    $percent = round($value / $total_time * 100);
-                    $left = $group === 'request-count' ? "$name ($value requests)" : $name . ' (' . \Done\LaravelAPM\Helpers\Helper::timeForHumans($value) . ')';
-                }else {
+                if($group === 'sql-time'){
+                    $value = explode('|', $value);
+                    $percent = round($value[0] / $total_time * 100);
+                    $avg = $value[0]/$value[1];
+                    $left = sprintf('%s (%s)  (calls %s times) <br>  <i>avg : %s </i>',
+                        $name,
+                        \Done\LaravelAPM\Helpers\Helper::timeForHumans($value[0]),
+                        $value[1],
+                        \Done\LaravelAPM\Helpers\Helper::timeForHumans($avg),);
+
+                }else if ($group === 'sql-count') {
                     $value = explode('|', $value);
                     $percent = round($value[0] / $total_time * 100);
                     $unique = $value[0]/$value[1];
-                    $left = "$name ($value[0] total requests ($value[1] calls) <br>  <i>$unique / call</i>";
+                    $left = sprintf('%s : %s queries  (calls %s times) <br>  <i>%s / call </i>',
+                        $name,
+                        $value[0],
+                        $value[1],
+                        $unique);
+
+                } else {
+                    $percent = round($value / $total_time * 100);
+                    $left = $group === 'request-count' ? "$name ($value requests)" : $name . ' (' . \Done\LaravelAPM\Helpers\Helper::timeForHumans($value) . ')';
                 }
                 $block_data[] = [
                     'left' => $left,

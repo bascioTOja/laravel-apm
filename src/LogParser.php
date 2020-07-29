@@ -54,10 +54,13 @@ class LogParser
                 $top_requests[$record[5]] = implode('|',  $count);
             } elseif ($group === 'sql-time') {
                 $count_by_hour[$hour . 'h'] += $record[3];
-                if (!isset($top_requests[$record[6]])) {
-                    $top_requests[$record[6]] = 0;
+                if (!isset($top_requests[$record[5]])) {
+                    $top_requests[$record[5]] = '0|0';
                 }
-                $top_requests[$record[6]] += $record[3];
+                $count = explode('|',$top_requests[$record[5]]);
+                $count[0]+= $record[3];
+                $count[1]++;
+                $top_requests[$record[5]] = implode('|',  $count);
             } elseif ($group === 'request-count') {
                 $count_by_hour[$hour . 'h'] += 1;
 
