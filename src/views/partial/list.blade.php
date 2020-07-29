@@ -22,7 +22,7 @@
                 'bg-info',
             ][$loop->index % 4];
             ?>
-            <h4 class="small font-weight-bold">{{ $row['left'] }}<span class="float-right">{{ $row['right'] }}</span></h4>
+            <h4 class="small font-weight-bold">{!! $row['left'] !!}}<span class="float-right">{{ $row['right'] }}</span></h4>
             <div class="progress mb-4">
                 <div class="progress-bar {{ $random_color }}" role="progressbar" style="width: {{ $row['percent'] }}%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
