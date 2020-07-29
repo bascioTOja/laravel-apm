@@ -9,100 +9,91 @@ class LogParser
      */
     public static function parse($type, $group)
     {
+        $path = self::path();
+
         $top_requests = [];
         $count_by_hour = [];
-        $top_total_count = 0;
         for ($i = 0; $i < 24; $i++) {
             $count_by_hour[$i . 'h'] = 0;
         }
 
-        for ($i = 0; $i < 24; $i++) {
-            $path = self::path($i);
+        if (!file_exists($path)) {
+            $top_total_count = 0;
+            return compact('count_by_hour', 'top_requests', 'top_total_count');
+        }
 
-            if (!\File::exists($path)) {
+        $data = \File::get($path);
+        $data = trim($data);
+
+        preg_match_all('/^([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ \n]+)/m', $data, $matches, PREG_SET_ORDER);
+        foreach ($matches as $record) {
+            // $timestamp, $duration, $sql_duration, $type, $name,$count, $ip
+
+            // filter by request type
+            if ($record[4] !== $type) {
                 continue;
             }
 
-            $data = \File::get($path);
-            $data = trim($data);
-
-            $pattern = '/^([^\s]+) ([^\s]+) ([^\s]+) ([^\s]+) ([^\s]+)/m';
-            if ($group === 'user') {
-                $pattern = '/^([^\s]+) ([^\s]+) ([^\s]+) ([^\s]+) ([^\s]+) ([^\s]+)/m';
-            }
-            preg_match_all($pattern, $data, $matches, PREG_SET_ORDER);
-
-            foreach ($matches as $record) {
-                // $timestamp, $duration, $sql_duration, $type, $name, $ip
-
-                // filter by request type
-                if ($record[4] !== $type) {
-                    continue;
-                }
-
-                $hour = ($record[1] / 3600) % 24; // hour
-
-                if ($group === 'total-time') {
-                    $count_by_hour[$hour . 'h'] += $record[2];
-
-                    if (!isset($top_requests[$record[5]])) {
-                        $top_requests[$record[5]] = 0;
-                    }
-                    $top_requests[$record[5]] += $record[2];
-                } elseif ($group === 'sql-time') {
-                    $count_by_hour[$hour . 'h'] += $record[3];
-
-                    if (!isset($top_requests[$record[5]])) {
-                        $top_requests[$record[5]] = 0;
-                    }
-                    $top_requests[$record[5]] += $record[3];
-                } elseif ($group === 'request-count') {
-                    $count_by_hour[$hour . 'h']++;
-
-                    if (!isset($top_requests[$record[5]])) {
-                        $top_requests[$record[5]] = 0;
-                    }
-                    $top_requests[$record[5]] += 1;
-                } elseif ($group === 'longest') {
-                    if ($count_by_hour[$hour . 'h'] < $record[2]) {
-                        $count_by_hour[$hour . 'h'] = $record[2];
-                    }
-
-                    if (!isset($top_requests[$record[5]])) {
-                        $top_requests[$record[5]] = 0;
-                    }
-                    if ($top_requests[$record[5]] < $record[2]) {
-                        $top_requests[$record[5]] = $record[2];
-                    }
-                } elseif ($group === 'user') {
-                    if ($record[4] !== 'request') {
-                        break;
-                    }
-
-                    $count_by_hour[$hour . 'h'] += 1;
-
-                    if (!isset($top_requests[$record[6]])) {
-                        $top_requests[$record[6]] = 0;
-                    }
-                    $top_requests[$record[6]]++;
-                } else {
-                    throw new \Exception('unknown group');
-                }
-            }
+            $hour = ($record[1] / 3600) % 24; // hour
 
             if ($group === 'total-time') {
-                $top_total_count += $value = array_sum(array_column($matches, 2));
+                $count_by_hour[$hour . 'h'] += $record[2];
+
+                if (!isset($top_requests[$record[6]])) {
+                    $top_requests[$record[6]] = 0;
+                }
+                $top_requests[$record[6]] += $record[2];
+            } elseif ($group === 'sql-count') {
+//                dd($record[3]);
+                $count_by_hour[$hour . 'h'] += $record[6];
+                if (!isset($top_requests[$record[5]])) {
+                    $top_requests[$record[5]] = '0|0';
+                }
+                $count = explode('|',$top_requests[$record[5]]);
+                $count[0]+= $record[6];
+                $count[1]++;
+                $top_requests[$record[5]] = implode('|',  $count);
             } elseif ($group === 'sql-time') {
-                $top_total_count += $value = array_sum(array_column($matches, 3));
+                $count_by_hour[$hour . 'h'] += $record[3];
+                if (!isset($top_requests[$record[6]])) {
+                    $top_requests[$record[6]] = 0;
+                }
+                $top_requests[$record[6]] += $record[3];
             } elseif ($group === 'request-count') {
-                $top_total_count += array_sum($count_by_hour);
+                $count_by_hour[$hour . 'h'] += 1;
+
+                if (!isset($top_requests[$record[6]])) {
+                    $top_requests[$record[6]] = 0;
+                }
+                $top_requests[$record[6]] += 1;
             } elseif ($group === 'longest') {
-                $top_total_count += count($top_requests) ? max($top_requests) : 0;
-            } elseif ($group === 'user') {
-                $top_total_count += array_sum($count_by_hour);
+                if ($count_by_hour[$hour . 'h'] < $record[2]) {
+                    $count_by_hour[$hour . 'h'] = $record[2];
+                }
+
+                if (!isset($top_requests[$record[6]])) {
+                    $top_requests[$record[6]] = 0;
+                }
+                if ($top_requests[$record[6]] < $record[2]) {
+                    $top_requests[$record[6]] = $record[2];
+                }
             } else {
-                throw new \Exception('unknown group');
+                throw new \Exception('unknown group' . $group);
             }
+        }
+
+        if ($group === 'total-time') {
+            $top_total_count = $value = array_sum(array_column($matches, 2));
+        } elseif ($group === 'sql-count') {
+            $top_total_count = $value = array_sum(array_column($matches, 6));
+        } elseif ($group === 'sql-time') {
+            $top_total_count = $value = array_sum(array_column($matches, 3));
+        } elseif ($group === 'request-count') {
+            $top_total_count = array_sum($count_by_hour);
+        } elseif ($group === 'longest') {
+            $top_total_count = count($top_requests) ? max($top_requests) : 0;
+        } else {
+            throw new \Exception('unknown group');
         }
 
         arsort($top_requests);
@@ -113,10 +104,8 @@ class LogParser
 
     // ---------------------------------------- private ----------------------------------------------------------------
 
-    private static function path($minus_hours)
+    private static function path()
     {
-        $name = now()->subHours($minus_hours)->format('Y-m-d_H');
-
-        return storage_path('app/apm/apm-' . $name . '.txt');
+        return storage_path('app/apm/apm-' . date('Y-m-d') . '.txt');
     }
 }

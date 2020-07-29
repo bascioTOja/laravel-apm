@@ -3,7 +3,7 @@
 class LogWriter
 {
     private static $directory_path = 'app/apm';
-    
+
     private static $data = '';
 
     public static function logAndWrite($current_time, $total_duration, $sql_duration, $type, $name, $user = null)
@@ -13,9 +13,9 @@ class LogWriter
     }
 
     // log in memory
-    public static function log($current_time, $total_duration, $sql_duration, $type, $name, $user = null)
+    public static function log($current_time, $total_duration, $sql_duration, $type, $name, $queriesCount, $user = null )
     {
-        self::$data .= self::formatData($current_time, $total_duration, $sql_duration, $type, $name, $user);
+        self::$data .= self::formatData($current_time, $total_duration, $sql_duration, $type, $name, $queriesCount, $user);
     }
 
     // write to disk
@@ -50,13 +50,13 @@ class LogWriter
             $data,
             FILE_APPEND | LOCK_EX
         );
-        
+
         self::$data = '';
     }
 
     private static function filename()
     {
-        $filename = 'apm-' . date('Y-m-d_H');
+        $filename = 'apm-' . date('Y-m-d');
         $full_path = storage_path(self::$directory_path . '/' . $filename . '.txt');
 
         return $full_path;
@@ -67,16 +67,15 @@ class LogWriter
         return storage_path(self::$directory_path);
     }
 
-    private static function formatData($time, $duration, $sql_time, $type, $name, $user)
+    private static function formatData($time, $duration, $sql_time, $type, $name,$queriesCount, $user)
     {
         $name_without_spaces = str_replace(' ', '_', $name);
         $duration = round($duration, 2); // in seconds
         $sql_time = round($sql_time, 3); // in seconds
-        $string_data = "$time $duration $sql_time $type $name_without_spaces";
+        $string_data = "$time $duration $sql_time $type $name_without_spaces $queriesCount";
         if ($user !== null) {
             $string_data .= " $user";
         }
-
         return $string_data . "\n";
     }
 }

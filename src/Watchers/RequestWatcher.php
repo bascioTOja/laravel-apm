@@ -22,6 +22,7 @@ class RequestWatcher
             QueryWatcher::getMilliseconds() / 1000,
             'request',
             $name,
+            QueryWatcher::getNumberOfQueries(),
             \Auth::check() ? \Auth::user()->email : request()->ip()
         );
     }
