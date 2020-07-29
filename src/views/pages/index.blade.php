@@ -53,17 +53,17 @@
 
                 if($group != 'sql-count'){
                     $percent = round($value / $total_time * 100);
-                    $left = $group === 'request-count' ? "$name ($value requests)" : $name . ' (' . \Done\LaravelAPM\Helpers\Helper::timeForHumans($value) . ')',
+                    $left = $group === 'request-count' ? "$name ($value requests)" : $name . ' (' . \Done\LaravelAPM\Helpers\Helper::timeForHumans($value) . ')';
                 }else {
                     $value = explode('|', $value);
                     $percent = round($value[0] / $total_time * 100);
                     $unique = $value[0]/$value[1];
-                    $left = "$name ($value[0] total requests ($value[1] calls) <br>  <i>$unique / call</i>",
+                    $left = "$name ($value[0] total requests ($value[1] calls) <br>  <i>$unique / call</i>";
                 }
                 $block_data[] = [
                     'left' => $left,
                     'right' => $percent . '%',
-                    'percent' => $percent,
+                    'percent' => $percent
                 ];
             }
             ?>

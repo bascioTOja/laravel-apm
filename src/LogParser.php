@@ -44,7 +44,6 @@ class LogParser
                 }
                 $top_requests[$record[6]] += $record[2];
             } elseif ($group === 'sql-count') {
-//                dd($record[3]);
                 $count_by_hour[$hour . 'h'] += $record[6];
                 if (!isset($top_requests[$record[5]])) {
                     $top_requests[$record[5]] = '0|0';
