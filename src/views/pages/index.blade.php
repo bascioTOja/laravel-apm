@@ -14,9 +14,9 @@
                 <select name="group">
                     <option value="total-time" @if (request('group') === 'total-time') selected @endif>Total time</option>
                     <option value="sql-time" @if (request('group') === 'sql-time') selected @endif>SQL time</option>
+                    <option value="sql-count" @if (request('group') === 'sql-count') selected @endif>SQL count</option>
                     <option value="longest" @if (request('group') === 'longest') selected @endif>Longest requests</option>
                     <option value="request-count" @if (request('group') === 'request-count') selected @endif>Request count</option>
-                    <option value="user" @if (request('group') === 'user') selected @endif>User requests</option>
                 </select>
                 <button>Filter</button>
             </form>
@@ -28,9 +28,9 @@
     <div class="row">
         <div class="col-md-12">
             <?php
-//            foreach ($data['count_by_hour'] as &$v) {
-//                $v = round($v, 2);
-//            }
+            //            foreach ($data['count_by_hour'] as &$v) {
+            //                $v = round($v, 2);
+            //            }
             ?>
             @include('apm::partial.chart', [
                 'title' => $group === 'request-count' ? 'Requests (count)' : 'Time (seconds)',
@@ -50,9 +50,18 @@
                     break;
                 }
 
-                $percent = round($value / $total_time * 100);
+
+                if($group != 'sql-count'){
+                    $percent = round($value / $total_time * 100);
+                    $left = $group === 'request-count' ? "$name ($value requests)" : $name . ' (' . \Done\LaravelAPM\Helpers\Helper::timeForHumans($value) . ')',
+                }else {
+                    $value = explode('|', $value);
+                    $percent = round($value[0] / $total_time * 100);
+                    $unique = $value[0]/$value[1];
+                    $left = "$name ($value[0] total requests ($value[1] calls) <br>  <i>$unique / call</i>",
+                }
                 $block_data[] = [
-                    'left' => in_array($group, ['request-count', 'user']) ? "$name ($value requests)" : $name . ' (' . \Done\LaravelAPM\Helpers\Helper::timeForHumans($value) . ')',
+                    'left' => $left,
                     'right' => $percent . '%',
                     'percent' => $percent,
                 ];
@@ -78,6 +87,9 @@
                             If page A received 1000 requests and each executed in 0.1 s, then in total it would take 100 * 0.1 = 100 seconds. <br>
                             If page B had 2 requests and each took 1 s, then 2 * 1 = 2 seconds.</p>
                         <p>In this case, to reduce the server load, optimizing page A would be the most advantageous. Optimizing page B will not bring a noticeable reduction in server load (max 2 seconds to win).</p>
+                    @elseif ($group === 'sql-count')
+                        <p><b>Shows:</b> pages that have the most number of SQL queries.</p>
+                        <p><b>Purpose:</b> pinpoint pages which would benefit the most from optimizing SQL queries.</p>
                     @elseif ($group === 'sql-time')
                         <p><b>Shows:</b> pages that spent the longest time in SQL queries.</p>
                         <p><b>Purpose:</b> pinpoint pages which would benefit the most from optimizing SQL queries.</p>
@@ -87,8 +99,6 @@
                         <p>Some pages with low amount of data will load quickly. After some time when some tables gather a lot of rows, those pages might start to load slower. All the data is shown for a single page load.</p>
                     @elseif ($group === 'request-count')
                         Pages that received the most requests.
-                    @elseif ($group === 'user')
-                        How many requests each user made
                     @else
                         <?php throw new \Exception('unknown group'); ?>
                     @endif
