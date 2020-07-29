@@ -21,6 +21,12 @@ class ApmServiceProvider extends ServiceProvider
     {
         $this->app[Kernel::class]->pushMiddleware(DelayedWriter::class);
         $this->loadViewsFrom(__DIR__ . '/views', 'apm');
+        $this->loadRoutesFrom(__DIR__.'/routes/routes.php');
+
+        $this->publishes([
+            __DIR__.'/../config/apm.php' => config_path('apm.php')
+        ], 'config');
+
     }
 
     public function register()
