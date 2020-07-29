@@ -49,8 +49,6 @@
                 if (count($block_data) > 50) {
                     break;
                 }
-
-
                 if($group != 'sql-count'){
                     $percent = round($value / $total_time * 100);
                     $left = $group === 'request-count' ? "$name ($value requests)" : $name . ' (' . \Done\LaravelAPM\Helpers\Helper::timeForHumans($value) . ')';
