@@ -45,6 +45,7 @@
             <?php
             $block_data = [];
             $total_time = $data['top_total_count'];
+            $title = '';
             foreach ($data['top_requests'] as $name => $value) {
                 if (count($block_data) > 50) {
                     break;
