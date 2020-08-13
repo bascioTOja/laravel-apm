@@ -57,8 +57,8 @@
                         $name,
                         \Done\LaravelAPM\Helpers\Helper::timeForHumans($value[0]),
                         $value[1],
-                        \Done\LaravelAPM\Helpers\Helper::timeForHumans($avg),);
-
+                        \Done\LaravelAPM\Helpers\Helper::timeForHumans($avg));
+                    $title = $group === 'request-count' ? 'Requests' : 'Time';
                 }else if ($group === 'sql-count') {
                     $value = explode('|', $value);
                     $percent = round($value[0] / $total_time * 100);
@@ -68,10 +68,13 @@
                         $value[0],
                         $value[1],
                         $unique);
+                    $title = 'Count';
 
                 } else {
                     $percent = round($value / $total_time * 100);
                     $left = $group === 'request-count' ? "$name ($value requests)" : $name . ' (' . \Done\LaravelAPM\Helpers\Helper::timeForHumans($value) . ')';
+                    $title = $group === 'request-count' ? 'Requests' : 'Time';
+
                 }
                 $block_data[] = [
                     'left' => $left,
@@ -79,9 +82,11 @@
                     'percent' => $percent
                 ];
             }
+
             ?>
+
             @include('apm::partial.list', [
-                'title' => $group === 'request-count' ? 'Requests' : 'Time',
+                'title' => $title,
                 'data' => $block_data,
             ])
 
