@@ -65,19 +65,17 @@ class ApmServiceProvider extends ServiceProvider
     private function registerRequest(): bool
     {
         # don't register if AMP is not enabled
-        if(! ($this->app['config']['apm']['enabled'] ?? false))
-        {
+        if(! ($this->app['config']['apm']['enabled'] ?? false)) {
             return false;
         }
 
         # don't register if path is excluded
-        if(in_array($this->app->request->path(), config('apm.excluded')))
-        {
+        if(in_array($this->app->request->path(), config('apm.excluded'))) {
             return false;
         }
 
         # register if path is in included paths
-        $startsWith = config('apm.starts_with');
+        $startsWith = config('apm.starts_with', []);
         return empty($startsWith) || \Str::startsWith($this->app->request->path(), $startsWith);
     }
 }

@@ -12,7 +12,7 @@ class ApmController
     public function index(Request $r)
     {
         if (!request('type')) {
-            $url = route('apm', ['type' => 'request']);
+            $url = route(config('apm.route.name', 'apm'), ['type' => 'request']);
             return redirect($url);
         }
 
