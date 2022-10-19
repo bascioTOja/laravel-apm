@@ -17,7 +17,9 @@
                     <option value="sql-count" @if (request('group') === 'sql-count') selected @endif>SQL count</option>
                     <option value="longest" @if (request('group') === 'longest') selected @endif>Longest requests</option>
                     <option value="request-count" @if (request('group') === 'request-count') selected @endif>Request count</option>
+                    <option value="p99-max" @if (request('group') === 'p99-max') selected @endif>Longest P99</option>
                 </select>
+                <input type="text" name="search" placeholder="Search" value="{{ request('search') }}">
                 <button>Filter</button>
             </form>
         </div>
@@ -59,11 +61,11 @@
                         \Done\LaravelAPM\Helpers\Helper::timeForHumans($value[0]),
                         $value[1],
                         \Done\LaravelAPM\Helpers\Helper::timeForHumans($avg));
-                    $title = $group === 'request-count' ? 'Requests' : 'Time';
+                    $title = 'Time';
                 }else if ($group === 'sql-count') {
                     $value = explode('|', $value);
                     $percent = round($value[0] / $total_time * 100);
-                    $unique = $value[0]/$value[1];
+                    $unique = round($value[0]/$value[1], 2);
                     $left = sprintf('%s : %s queries  (calls %s times) <br>  <i>%s / call </i>',
                         $name,
                         $value[0],
@@ -80,7 +82,7 @@
                 $block_data[] = [
                     'left' => $left,
                     'right' => $percent . '%',
-                    'percent' => $percent
+                    'percent' => $percent,
                 ];
             }
 
@@ -106,25 +108,28 @@
                             If page A received 1000 requests and each executed in 0.1 s, then in total it would take 100 * 0.1 = 100 seconds. <br>
                             If page B had 2 requests and each took 1 s, then 2 * 1 = 2 seconds.</p>
                         <p>In this case, to reduce the server load, optimizing page A would be the most advantageous. Optimizing page B will not bring a noticeable reduction in server load (max 2 seconds to win).</p>
-                    @elseif ($group === 'sql-count')
-                        <p><b>Shows:</b> pages that have the most number of SQL queries.</p>
-                        <p><b>Purpose:</b> pinpoint pages which would benefit the most from optimizing SQL queries.</p>
                     @elseif ($group === 'sql-time')
                         <p><b>Shows:</b> pages that spent the longest time in SQL queries.</p>
                         <p><b>Purpose:</b> pinpoint pages which would benefit the most from optimizing SQL queries.</p>
+                    @elseif ($group === 'sql-count')
+                        <p><b>Shows:</b> Pages that received the most SQL queries.</p>
+                        <p><b>Purpose:</b> pinpoint pages which would benefit the most from optimizing amount of SQL queries.</p>
                     @elseif ($group === 'longest')
                         <p><b>Shows:</b> single page that took the longest to load.</p>
                         <p><b>Purpose:</b> to find problematic pages</p>
                         <p>Some pages with low amount of data will load quickly. After some time when some tables gather a lot of rows, those pages might start to load slower. All the data is shown for a single page load.</p>
                     @elseif ($group === 'request-count')
                         Pages that received the most requests.
+                    @elseif ($group === 'p99-max')
+                        <p><b>Shows:</b> single page that took the longest to load from the first 99% fastest.</p>
+                        <p><b>Purpose:</b> to find problematic pages</p>
+                        <p>Some pages with low amount of data will load quickly. After some time when some tables gather a lot of rows, those pages might start to load slower. All the data is shown for a single page load.</p>
                     @else
-                        <?php throw new \Exception('unknown group'); ?>
+                            <?php throw new \Exception('unknown group'); ?>
                     @endif
                 </div>
             </div>
 
         </div>
     </div>
-
 @endsection

@@ -2,9 +2,9 @@
 
 class LogWriter
 {
-    private static $directory_path = 'app/apm';
+    private static string $directory_path = 'app/apm';
 
-    private static $data = '';
+    private static string $data = '';
 
     public static function logAndWrite($current_time, $total_duration, $sql_duration, $type, $name, $user = null)
     {
@@ -67,7 +67,7 @@ class LogWriter
         return storage_path(self::$directory_path);
     }
 
-    private static function formatData($time, $duration, $sql_time, $type, $name,$queriesCount, $user)
+    private static function formatData($time, $duration, $sql_time, $type, $name, $queriesCount, $user): string
     {
         $name_without_spaces = str_replace(' ', '_', $name);
         $duration = round($duration, 2); // in seconds

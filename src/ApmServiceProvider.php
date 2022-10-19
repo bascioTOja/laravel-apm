@@ -41,18 +41,43 @@ class ApmServiceProvider extends ServiceProvider
             ]);
         }
 
-        // don't register if AMP is not enabled
-        // and don't listen if route is exluded
-        if ($this->app['config']['apm']['enabled'] && !in_array($this->app->request->path(), config('apm.excluded'))){
-            $this->app['events']->listen(RequestHandled::class, [RequestWatcher::class, 'record']);
+        if ($this->registerRequest()) {
+            if ($this->app['config']['apm']['request_enabled'] ?? false) {
+                $this->app['events']->listen(RequestHandled::class, [RequestWatcher::class, 'record']);
+            }
 
-            $this->app['events']->listen(ScheduledTaskFinished::class, [ScheduleWatcher::class, 'record']);
+            if ($this->app['config']['apm']['schedule_enabled'] ?? false) {
+                $this->app['events']->listen(ScheduledTaskFinished::class, [ScheduleWatcher::class, 'record']);
+            }
 
-            $this->app['events']->listen(JobProcessing::class, [JobWatcher::class, 'start']); // start
-            $this->app['events']->listen(JobProcessed::class, [JobWatcher::class, 'record']); // finish
-            $this->app['events']->listen(JobFailed::class, [JobWatcher::class, 'record']); // finish
+            if ($this->app['config']['apm']['job_enabled'] ?? false) {
+                $this->app['events']->listen(JobProcessing::class, [JobWatcher::class, 'start']); // start
+                $this->app['events']->listen(JobProcessed::class, [JobWatcher::class, 'record']); // finish
+                $this->app['events']->listen(JobFailed::class, [JobWatcher::class, 'record']); // finish
+            }
 
-            $this->app['events']->listen(QueryExecuted::class, [QueryWatcher::class, 'record']);
+            if ($this->app['config']['apm']['query_enabled'] ?? false) {
+                $this->app['events']->listen(QueryExecuted::class, [QueryWatcher::class, 'record']);
+            }
         }
+    }
+
+    private function registerRequest(): bool
+    {
+        # don't register if AMP is not enabled
+        if(! ($this->app['config']['apm']['enabled'] ?? false))
+        {
+            return false;
+        }
+
+        # don't register if path is excluded
+        if(in_array($this->app->request->path(), config('apm.excluded')))
+        {
+            return false;
+        }
+
+        # register if path is in included paths
+        $startsWith = config('apm.starts_with');
+        return empty($startsWith) || \Str::startsWith($this->app->request->path(), $startsWith);
     }
 }
