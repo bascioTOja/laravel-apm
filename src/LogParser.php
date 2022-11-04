@@ -9,7 +9,9 @@ class LogParser
      */
     public static function parse($type, $group)
     {
-        $path = self::path();
+        $date = \request('date');
+
+        $path = self::path($date);
 
         $top_requests = [];
         $count_by_hour = [];
@@ -149,8 +151,12 @@ class LogParser
 
     // ---------------------------------------- private ----------------------------------------------------------------
 
-    private static function path()
+    private static function path($date = null)
     {
-        return storage_path('app/apm/apm-' . date('Y-m-d') . '.txt');
+        if (! $date) {
+            $date = date('Y-m-d');
+        }
+
+        return storage_path('app/apm/apm-' . $date . '.txt');
     }
 }

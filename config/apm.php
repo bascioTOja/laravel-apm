@@ -19,6 +19,7 @@ return [
     'excluded' => [
         'apm',
     ],
+
     'route' => [
         'uri'  => '/apm',
         'name' => 'apm',
@@ -26,4 +27,10 @@ return [
     'middlewares' => [
         'web',
     ],
+
+    /*
+     * How long files will be kept,
+     * apm:clear command will delete files older than the number of days
+     */
+    'keep_for_days' => 7,
 ];

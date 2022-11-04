@@ -20,6 +20,13 @@
                     <option value="p99-max" @if (request('group') === 'p99-max') selected @endif>Longest P99</option>
                 </select>
                 <input type="text" name="search" placeholder="Search" value="{{ request('search') }}">
+
+                @php
+                    $date = \Carbon\Carbon::parse(request('date', date('Y-m-d')));
+                @endphp
+                <input type="date" name="date" value="{{ $date->toDateString() }}">
+                <button name="date" value="{{ $date->clone()->subDay()->toDateString() }}"><<</button>
+                <button name="date" value="{{ $date->clone()->addDay()->toDateString() }}">>></button>
                 <button>Filter</button>
             </form>
         </div>
